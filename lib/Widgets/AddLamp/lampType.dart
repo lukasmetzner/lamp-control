@@ -1,0 +1,4 @@
+enum LampType {
+  SWITCHABLE,
+  SETABLE
+}
