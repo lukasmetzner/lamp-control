@@ -12,7 +12,7 @@ class _AddLampState extends State<AddLamp> {
 
   final lampNameController = TextEditingController();
   String dropdownValue = 'Setable';
-  LampType _lampType = null;
+  LampType _lampType;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +27,7 @@ class _AddLampState extends State<AddLamp> {
           children: <Widget>[
             TextFormField(
               controller: lampNameController,
+              //TODO: Validator
               decoration: const InputDecoration(
                 icon: Icon(Icons.lightbulb_outline),
                 labelText: 'Lamp identifier',

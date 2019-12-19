@@ -1,17 +1,32 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:lamp_control/SocketService/socketService.dart';
 
 class SwitchableLamp extends StatefulWidget {
-  String _name;
-  SwitchableLamp(name) : this._name = name;
+  String name;
+  SocketService _socketService;
+  bool toggle = false;
+
+  SwitchableLamp(name, socketService){
+    this.name = name;
+    this._socketService = socketService;
+  }
+
   @override
-  _SwitchableLampState createState() => _SwitchableLampState(_name);
+  _SwitchableLampState createState() => _SwitchableLampState(name);
+
+  @override
+  String toString({ DiagnosticLevel minLevel = DiagnosticLevel.debug }) {
+    return name;
+  }
 }
 
 class _SwitchableLampState extends State<SwitchableLamp>{
   String _name;
-  bool btnToggle = false;
-  _SwitchableLampState(name) : this._name = name;
+
+  _SwitchableLampState(name){
+    this._name = name;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,12 +38,12 @@ class _SwitchableLampState extends State<SwitchableLamp>{
         ),
         RaisedButton(
           child: Icon(Icons.lightbulb_outline),
-          color: btnToggle ? Color.fromARGB(100, 25, 255, 25) : Color.fromARGB(100, 255, 25, 25),
+          color: widget.toggle ? Color.fromARGB(100, 25, 255, 25) : Color.fromARGB(100, 255, 25, 25),
           onPressed: () {
             setState(() {
-              btnToggle = !btnToggle;
+              widget.toggle = !widget.toggle;
             });
-            //TODO: switch lamp
+            widget._socketService.getSocket().write(widget.name + " " + widget.toggle.toString() + "\n");
           },
         )
       ],
