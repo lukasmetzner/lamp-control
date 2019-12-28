@@ -10,7 +10,9 @@ class AddLamp extends StatefulWidget {
 
 class _AddLampState extends State<AddLamp> {
 
+  final _globalKey = GlobalKey<FormState>();
   final lampNameController = TextEditingController();
+  final pinController = TextEditingController();
   String dropdownValue = 'Setable';
   LampType _lampType;
 
@@ -23,42 +25,64 @@ class _AddLampState extends State<AddLamp> {
         ),
       ),
       body: Center(
-        child: Column(
-          children: <Widget>[
-            TextFormField(
-              controller: lampNameController,
-              //TODO: Validator
-              decoration: const InputDecoration(
-                icon: Icon(Icons.lightbulb_outline),
-                labelText: 'Lamp identifier',
+        child: Form(
+          key: _globalKey,
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                controller: lampNameController,
+                validator: (value) {
+                  if(value.isEmpty)
+                    return "Please enter a name";
+                  return null;
+                },
+                decoration: const InputDecoration(
+                  icon: Icon(Icons.lightbulb_outline),
+                  labelText: 'Lamp identifier',
+                ),
               ),
-            ),
-            DropdownButtonFormField(
-              value: dropdownValue,
-              onChanged: (String newValue) {
-                setState(() {
-                  dropdownValue = newValue;
-                });
-              },
-              items: <String>['Switchable', 'Setable']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            )
-          ],
+              TextFormField(
+                controller: pinController,
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if(value.isEmpty)
+                    return "Please enter a pin";
+                  return null;
+                },
+                decoration: const InputDecoration(
+                  icon: Icon(Icons.pin_drop),
+                  labelText: 'Pin',
+                ),
+              ),
+              DropdownButtonFormField(
+                value: dropdownValue,
+                onChanged: (String newValue) {
+                  setState(() {
+                    dropdownValue = newValue;
+                  });
+                },
+                items: <String>['Switchable', 'Setable']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              )
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.save),
         onPressed: (){
-          if(dropdownValue == "Switchable")
-            _lampType = LampType.SWITCHABLE;
-          else if(dropdownValue == "Setable")
-            _lampType = LampType.SETABLE;
-          Navigator.pop(context, new AddLampResult(lampNameController.text, _lampType));
+          if(_globalKey.currentState.validate()){
+            if(dropdownValue == "Switchable")
+              _lampType = LampType.SWITCHABLE;
+            else if(dropdownValue == "Setable")
+              _lampType = LampType.SETABLE;
+            Navigator.pop(context, new AddLampResult(lampNameController.text, _lampType, int.parse((pinController.text))));
+          }
         },
       ),
     );

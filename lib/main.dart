@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:lamp_control/DatabaseService/databaseService.dart';
 import 'package:lamp_control/SocketService/socketService.dart';
@@ -5,25 +7,30 @@ import 'package:lamp_control/Widgets/AddLamp/addLamp.dart';
 import 'package:lamp_control/Widgets/AddLamp/addLampResult.dart';
 import 'package:lamp_control/Widgets/AddLamp/lampType.dart';
 import 'package:lamp_control/Widgets/LampListItem/setableLamp.dart';
+import 'package:lamp_control/Widgets/Settings/settingsResult.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'DatabaseService/Lamp.dart';
 import 'Widgets/LampListItem/switchableLamp.dart';
-import 'Widgets/Settings/SettingsResult.dart';
 import 'Widgets/Settings/settings.dart';
 
 void main() {
-  SocketService socketService = new SocketService("192.168.0.26", 8080);
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MaterialApp(home: Home(socketService: socketService)));
+  runApp(MaterialApp(home: Home()));
 }
 
 class Home extends StatefulWidget {
-  final SocketService socketService;
+  SocketService socketService;
   DatabaseService databaseService;
+  SharedPreferences config;
 
-  Home({this.socketService}){
+  Home(){
     this.databaseService = new DatabaseService();
     this.databaseService.setupDatabase();
+    SharedPreferences.getInstance().then((pref) {
+      this.config = pref;
+      this.socketService = new SocketService(this.config.get("ip"), this.config.get("port"));
+    });
   }
 
   @override
@@ -40,11 +47,10 @@ class _HomeState extends State<Home>{
     List<Widget> tmpLamps = List<Widget>.generate(0, null);
     widget.databaseService.getLamps().then((lamps) {
       lamps.forEach((lamp) {
-        print(lamp.type);
         if(lamp.type == "LampType.SWITCHABLE")
-          tmpLamps.add(new SwitchableLamp(lamp.name, widget.socketService));
+          tmpLamps.add(new SwitchableLamp(lamp.name, widget.socketService, lamp.pin));
         else if(lamp.type == "LampType.SETABLE")
-          tmpLamps.add(new SetableLamp(lamp.name, widget.socketService));
+          tmpLamps.add(new SetableLamp(lamp.name, widget.socketService, lamp.pin));
       });
       setState(() {
         _lamps.addAll(tmpLamps);
@@ -65,14 +71,17 @@ class _HomeState extends State<Home>{
             child: IconButton(
               icon: Icon(Icons.settings),
               onPressed: () async {
-                final result = await Navigator.push(
+                final result = await Navigator.push<SettingsResult>(
                   context,
                   MaterialPageRoute<SettingsResult>(builder: (context) =>  Settings())
                 );
                 setState(() {
-                  print(result.port);
+                  if(result != null){
+                    widget.config.setString("ip", result.raspiIp);
+                    widget.config.setInt("port", result.port);
+                    widget.socketService = new SocketService(result.raspiIp, result.port);
+                  }
                 });
-                //TODO: Save new settings
               },
             ),
           ),
@@ -94,6 +103,17 @@ class _HomeState extends State<Home>{
                           ..removeCurrentSnackBar()
                           ..showSnackBar(SnackBar(content: Text(lamp.toString() + " removed"),));
                     });
+                    if(widget.socketService.getSocket() != null)
+                      switch(lamp.runtimeType){
+                        case SwitchableLamp:
+                          var tmp = lamp as SwitchableLamp;
+                          widget.socketService.getSocket().write(tmp.name + ":" + tmp.pin.toString() + ":" + "true" + ":" + "remove");
+                          break;
+                        case SetableLamp:
+                          var tmp = lamp as SetableLamp;
+                          widget.socketService.getSocket().write(tmp.name + ":" + tmp.pin.toString() + ":" + "false" + ":" + "remove");
+                          break;
+                      }
                   });
                 },
               );
@@ -110,18 +130,25 @@ class _HomeState extends State<Home>{
           setState(() {
             if(result != null){
               if(result.lampType == LampType.SETABLE)
-                _lamps.add(new SetableLamp(result.lampName, widget.socketService));
+                _lamps.add(new SetableLamp(result.lampName, widget.socketService, result.pin));
               else if (result.lampType == LampType.SWITCHABLE)
-                _lamps.add(new SwitchableLamp(result.lampName, widget.socketService));
+                _lamps.add(new SwitchableLamp(result.lampName, widget.socketService, result.pin));
             }
           });
-          widget.databaseService.insertLamp(
-              Lamp(
-                  name: result.lampName,
-                  type: result.lampType.toString()
-              )
-          );
-          //TODO: Add new lamp to database
+          if(result != null) {
+            widget.databaseService.insertLamp(
+                Lamp(
+                    name: result.lampName,
+                    type: result.lampType.toString()
+                )
+            );
+            if(widget.socketService.getSocket() != null){
+              if(result.lampType == LampType.SWITCHABLE)
+                widget.socketService.getSocket().write(result.lampName + ":" + result.pin.toString() + ":" + "true" + ":" + "add");
+              if(result.lampType == LampType.SETABLE)
+                widget.socketService.getSocket().write(result.lampName + ":" + result.pin.toString() + ":" + "false" + ":" + "add");
+            }
+          }
         },
       ),
     );

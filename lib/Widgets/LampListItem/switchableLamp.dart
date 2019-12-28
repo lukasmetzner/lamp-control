@@ -6,10 +6,12 @@ class SwitchableLamp extends StatefulWidget {
   String name;
   SocketService _socketService;
   bool toggle = false;
+  int pin;
 
-  SwitchableLamp(name, socketService){
+  SwitchableLamp(name, socketService, pin){
     this.name = name;
     this._socketService = socketService;
+    this.pin = pin;
   }
 
   @override
@@ -43,7 +45,12 @@ class _SwitchableLampState extends State<SwitchableLamp>{
             setState(() {
               widget.toggle = !widget.toggle;
             });
-            widget._socketService.getSocket().write(widget.name + " " + widget.toggle.toString() + "\n");
+            if(widget._socketService.getSocket() != null){
+              if(widget.toggle)
+                widget._socketService.getSocket().write(widget.name + ":" + widget.pin.toString() + "on" + "\n");
+              if(!widget.toggle)
+                widget._socketService.getSocket().write(widget.name + ":" + widget.pin.toString() + "off" "\n");
+            }
           },
         )
       ],

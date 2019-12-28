@@ -5,10 +5,12 @@ import 'package:lamp_control/SocketService/socketService.dart';
 class SetableLamp extends StatefulWidget{
   String name;
   SocketService _socketService;
+  int pin;
 
-  SetableLamp(name, socketService){
+  SetableLamp(name, socketService, pin){
     this.name = name;
     this._socketService = socketService;
+    this.pin = pin;
   }
   @override
   _SetableLampState createState() => _SetableLampState(name);
@@ -42,6 +44,7 @@ class _SetableLampState extends State<SetableLamp>{
         ),
         Flexible(
           child: TextFormField(
+            keyboardType: TextInputType.number,
               controller: setValueController,
               decoration: const InputDecoration(
                 labelText: 'Set Value',
@@ -56,7 +59,8 @@ class _SetableLampState extends State<SetableLamp>{
               //TODO Validate input
               int tmp = int.parse(setValueController.text);
               if(tmp > 0){
-                widget._socketService.getSocket().write(widget.name + " " + setValueController.text + "\n");
+                if(widget._socketService.getSocket() != null)
+                  widget._socketService.getSocket().write(widget.name + " " + setValueController.text + "\n");
                 setState(() {
                   setValueController.text = "";
                 });

@@ -14,7 +14,7 @@ class DatabaseService {
         'lamp_database.db'
     ),
     onCreate: (db, version) {
-      return db.execute('CREATE TABLE lamps(name TEXT PRIMARY KEY, type TEXT)');
+      return db.execute('CREATE TABLE lamps(name TEXT PRIMARY KEY, type TEXT, pin NUMBER)');
     },
     version: 1,
   );
@@ -42,6 +42,7 @@ class DatabaseService {
       return Lamp(
         name: maps[i]['name'],
         type: maps[i]['type'],
+        pin: maps[i]['pin'],
       );
     });
   }

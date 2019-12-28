@@ -11,7 +11,13 @@ class SocketService {
     Socket.connect(this._ip, this._port)
     .then((Socket sock) {
       this._socket = sock;
-      this._socket.write("ping");
+      this._socket.write("ping\n");
+      this._socket.listen(
+        dataHandler,
+        onError: errorHandler,
+        onDone: doneHandler,
+        cancelOnError: false
+      );
     }).catchError((Object e) {
       print(e);
     });
@@ -31,7 +37,7 @@ class SocketService {
   }
 
   void errorHandler(error) {
-    print(error.toString());
+    print("Error Message:" + error.toString());
   }
 
   void doneHandler(){
