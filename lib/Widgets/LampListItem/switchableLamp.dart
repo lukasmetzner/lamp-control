@@ -47,9 +47,9 @@ class _SwitchableLampState extends State<SwitchableLamp>{
             });
             if(widget._socketService.getSocket() != null){
               if(widget.toggle)
-                widget._socketService.getSocket().write(widget.name + ":" + widget.pin.toString() + "on" + "\n");
+                widget._socketService.getSocket().write(widget.name + ":" + widget.pin.toString() + "on");
               if(!widget.toggle)
-                widget._socketService.getSocket().write(widget.name + ":" + widget.pin.toString() + "off" "\n");
+                widget._socketService.getSocket().write(widget.name + ":" + widget.pin.toString() + "off");
             }
           },
         )

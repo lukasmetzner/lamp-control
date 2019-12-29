@@ -60,7 +60,7 @@ class _SetableLampState extends State<SetableLamp>{
               int tmp = int.parse(setValueController.text);
               if(tmp > 0){
                 if(widget._socketService.getSocket() != null)
-                  widget._socketService.getSocket().write(widget.name + " " + setValueController.text + "\n");
+                  widget._socketService.getSocket().write(widget.name + " " + setValueController.text);
                 setState(() {
                   setValueController.text = "";
                 });

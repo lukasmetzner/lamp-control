@@ -11,7 +11,7 @@ class SocketService {
     Socket.connect(this._ip, this._port)
     .then((Socket sock) {
       this._socket = sock;
-      this._socket.write("ping\n");
+      this._socket.write("ping");
       this._socket.listen(
         dataHandler,
         onError: errorHandler,

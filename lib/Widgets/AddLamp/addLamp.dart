@@ -13,7 +13,7 @@ class _AddLampState extends State<AddLamp> {
   final _globalKey = GlobalKey<FormState>();
   final lampNameController = TextEditingController();
   final pinController = TextEditingController();
-  String dropdownValue = 'Setable';
+  String dropdownValue = 'Switchable';
   LampType _lampType;
 
   @override
