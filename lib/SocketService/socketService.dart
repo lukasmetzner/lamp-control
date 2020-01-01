@@ -5,42 +5,39 @@ class SocketService {
   int _port;
   Socket _socket;
 
-  SocketService(String ip,int port){
+  //TODO: Make connection in seperate function
+  //return connection Future so error handle can update gui
+  //
+
+  SocketService(String ip, int port) {
     this._ip = ip;
     this._port = port;
-    Socket.connect(this._ip, this._port)
-    .then((Socket sock) {
+
+    Socket.connect(this._ip, this._port).then((Socket sock) {
       this._socket = sock;
       this._socket.write("ping");
-      this._socket.listen(
-        dataHandler,
-        onError: errorHandler,
-        onDone: doneHandler,
-        cancelOnError: false
-      );
     }).catchError((Object e) {
       print(e);
     });
   }
 
-  void sendMessage(String message){
-    this._socket.write(message);
-  }
-
-  void dataHandler(data){
-    if(String.fromCharCodes(data).toLowerCase().contains("ping"))
-      this._socket.write("pong");
-  }
-
-  Socket getSocket(){
-    return this._socket;
+  void dataHandler(data) {
+    return;
   }
 
   void errorHandler(error) {
-    print("Error Message:" + error.toString());
+    print(error);
   }
 
-  void doneHandler(){
+  void sendMessage(String message) {
+    this._socket.write(message);
+  }
+
+  Socket getSocket() {
+    return this._socket;
+  }
+
+  void doneHandler() {
     this._socket.destroy();
   }
 }

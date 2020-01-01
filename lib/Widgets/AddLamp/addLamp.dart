@@ -9,7 +9,6 @@ class AddLamp extends StatefulWidget {
 }
 
 class _AddLampState extends State<AddLamp> {
-
   final _globalKey = GlobalKey<FormState>();
   final lampNameController = TextEditingController();
   final pinController = TextEditingController();
@@ -32,8 +31,7 @@ class _AddLampState extends State<AddLamp> {
               TextFormField(
                 controller: lampNameController,
                 validator: (value) {
-                  if(value.isEmpty)
-                    return "Please enter a name";
+                  if (value.isEmpty) return "Please enter a name";
                   return null;
                 },
                 decoration: const InputDecoration(
@@ -45,8 +43,7 @@ class _AddLampState extends State<AddLamp> {
                 controller: pinController,
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if(value.isEmpty)
-                    return "Please enter a pin";
+                  if (value.isEmpty) return "Please enter a pin";
                   return null;
                 },
                 decoration: const InputDecoration(
@@ -75,17 +72,20 @@ class _AddLampState extends State<AddLamp> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.save),
-        onPressed: (){
-          if(_globalKey.currentState.validate()){
-            if(dropdownValue == "Switchable")
-              _lampType = LampType.SWITCHABLE;
-            else if(dropdownValue == "Setable")
-              _lampType = LampType.SETABLE;
-            Navigator.pop(context, new AddLampResult(lampNameController.text, _lampType, int.parse((pinController.text))));
-          }
-        },
+        onPressed: addLamp,
       ),
     );
   }
 
+  void addLamp() {
+    if (_globalKey.currentState.validate()) {
+      if (dropdownValue == "Switchable")
+        _lampType = LampType.SWITCHABLE;
+      else if (dropdownValue == "Setable") _lampType = LampType.SETABLE;
+      Navigator.pop(
+          context,
+          new AddLampResult(lampNameController.text, _lampType,
+              int.parse((pinController.text))));
+    }
+  }
 }

@@ -67,24 +67,12 @@ class _HomeState extends State<Home> {
         centerTitle: true,
         title: Text("Lampensteuerung"),
         actions: <Widget>[
+          createStreamBuilder(),
           Padding(
             padding: const EdgeInsets.all(0),
             child: IconButton(
               icon: Icon(Icons.settings),
-              onPressed: () async {
-                final result = await Navigator.push<SettingsResult>(
-                    context,
-                    MaterialPageRoute<SettingsResult>(
-                        builder: (context) => Settings()));
-                setState(() {
-                  if (result != null) {
-                    widget.config.setString("ip", result.raspiIp);
-                    widget.config.setInt("port", result.port);
-                    widget.socketService =
-                        new SocketService(result.raspiIp, result.port);
-                  }
-                });
-              },
+              onPressed: openedSettings,
             ),
           ),
         ],
@@ -99,6 +87,43 @@ class _HomeState extends State<Home> {
         onPressed: addButtonPressed,
       ),
     );
+  }
+
+  Widget createStreamBuilder() {
+    if (widget.socketService != null) if (widget.socketService.getSocket() !=
+        null)
+      return new StreamBuilder(
+        stream: widget.socketService.getSocket(),
+        builder: handleStream,
+      );
+    return Icon(Icons.error);
+  }
+
+  Widget handleStream(context, snap) {
+    if (snap.hasError) {
+      print(snap.error.toString());
+    } else if (snap.hasData) {
+      print(String.fromCharCodes(snap.data));
+    }
+
+    //Empty basically not visible container used
+    //as dummy to implement streambuilder
+    return Container(
+      width: 0.0,
+      height: 0.0,
+    );
+  }
+
+  void openedSettings() async {
+    final result = await Navigator.push<SettingsResult>(context,
+        MaterialPageRoute<SettingsResult>(builder: (context) => Settings()));
+    setState(() {
+      if (result != null) {
+        widget.config.setString("ip", result.raspiIp);
+        widget.config.setInt("port", result.port);
+        widget.socketService = new SocketService(result.raspiIp, result.port);
+      }
+    });
   }
 
   Widget dismissableItemBuilder(BuildContext context, int index) {

@@ -2,12 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lamp_control/SocketService/socketService.dart';
 
-class SetableLamp extends StatefulWidget{
+class SetableLamp extends StatefulWidget {
   String name;
   SocketService _socketService;
   int pin;
 
-  SetableLamp(name, socketService, pin){
+  SetableLamp(name, socketService, pin) {
     this.name = name;
     this._socketService = socketService;
     this.pin = pin;
@@ -16,22 +16,15 @@ class SetableLamp extends StatefulWidget{
   _SetableLampState createState() => _SetableLampState(name);
 
   @override
-  String toString({ DiagnosticLevel minLevel = DiagnosticLevel.debug }) {
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.debug}) {
     return name;
   }
-
 }
 
-class _SetableLampState extends State<SetableLamp>{
+class _SetableLampState extends State<SetableLamp> {
   String _name;
+  double _sliderValue = 0.0;
   _SetableLampState(name) : this._name = name;
-  final setValueController = TextEditingController();
-
-  @override
-  void dispose(){
-    setValueController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,32 +36,32 @@ class _SetableLampState extends State<SetableLamp>{
           child: Text(_name),
         ),
         Flexible(
-          child: TextFormField(
-            keyboardType: TextInputType.number,
-              controller: setValueController,
-              decoration: const InputDecoration(
-                labelText: 'Set Value',
-              ),
-            ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(15),
-          child: RaisedButton(
-            child: Icon(Icons.arrow_forward),
-            onPressed: () {
-              //TODO Validate input
-              int tmp = int.parse(setValueController.text);
-              if(tmp > 0){
-                if(widget._socketService.getSocket() != null)
-                  widget._socketService.getSocket().write(widget.name + " " + setValueController.text);
-                setState(() {
-                  setValueController.text = "";
-                });
-              }
+          child: Slider(
+            min: 0,
+            max: 255,
+            value: _sliderValue,
+            onChanged: (value) {
+              setState(() {
+                _sliderValue = value;
+              });
+            },
+            onChangeEnd: (value) {
+              sendInput(value);
             },
           ),
         ),
       ],
     );
+  }
+
+  void sendInput(double value) {
+    if (widget._socketService.getSocket() != null)
+      widget._socketService.getSocket().write(widget.name +
+          ":" +
+          widget.pin.toString() +
+          ":" +
+          value.round().toString() +
+          ":" +
+          "set");
   }
 }
