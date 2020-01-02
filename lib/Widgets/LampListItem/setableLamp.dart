@@ -1,15 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lamp_control/SocketService/socketService.dart';
 
 class SetableLamp extends StatefulWidget {
   String name;
-  SocketService _socketService;
+  Socket _socket;
   int pin;
 
-  SetableLamp(name, socketService, pin) {
+  SetableLamp(name, socket, pin) {
     this.name = name;
-    this._socketService = socketService;
+    this._socket = socket;
     this.pin = pin;
   }
   @override
@@ -23,7 +25,7 @@ class SetableLamp extends StatefulWidget {
 
 class _SetableLampState extends State<SetableLamp> {
   String _name;
-  double _sliderValue = 0.0;
+  double _sliderValue = 0;
   _SetableLampState(name) : this._name = name;
 
   @override
@@ -55,10 +57,8 @@ class _SetableLampState extends State<SetableLamp> {
   }
 
   void sendInput(double value) {
-    if (widget._socketService.getSocket() != null)
-      widget._socketService.getSocket().write(widget.name +
-          ":" +
-          widget.pin.toString() +
+    if (widget._socket != null)
+      widget._socket.write(widget.name +
           ":" +
           value.round().toString() +
           ":" +

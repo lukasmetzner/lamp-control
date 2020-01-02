@@ -1,16 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lamp_control/SocketService/socketService.dart';
 
 class SwitchableLamp extends StatefulWidget {
   String name;
-  SocketService _socketService;
+  Socket _socket;
   bool toggle = false;
   int pin;
 
-  SwitchableLamp(name, socketService, pin) {
+  SwitchableLamp(name, socket, pin) {
     this.name = name;
-    this._socketService = socketService;
+    this._socket = socket;
     this.pin = pin;
   }
 
@@ -53,15 +55,9 @@ class _SwitchableLampState extends State<SwitchableLamp> {
     setState(() {
       widget.toggle = !widget.toggle;
     });
-    if (widget._socketService.getSocket() != null) {
-      if (widget.toggle)
-        widget._socketService
-            .getSocket()
-            .write(widget.name + ":" + widget.pin.toString() + "on");
-      if (!widget.toggle)
-        widget._socketService
-            .getSocket()
-            .write(widget.name + ":" + widget.pin.toString() + "off");
+    if (widget._socket != null) {
+      widget._socket
+          .write(widget.name + ":" + widget.toggle.toString() + ":" + "switch");
     }
   }
 }
