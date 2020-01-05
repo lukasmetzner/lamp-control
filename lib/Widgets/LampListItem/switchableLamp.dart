@@ -16,6 +16,10 @@ class SwitchableLamp extends StatefulWidget {
     this.pin = pin;
   }
 
+  void setSocket(Socket socket) {
+    _socket = socket;
+  }
+
   @override
   _SwitchableLampState createState() => _SwitchableLampState(name);
 

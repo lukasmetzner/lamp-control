@@ -14,6 +14,11 @@ class SetableLamp extends StatefulWidget {
     this._socket = socket;
     this.pin = pin;
   }
+
+  void setSocket(Socket socket) {
+    _socket = socket;
+  }
+
   @override
   _SetableLampState createState() => _SetableLampState(name);
 
@@ -58,10 +63,7 @@ class _SetableLampState extends State<SetableLamp> {
 
   void sendInput(double value) {
     if (widget._socket != null)
-      widget._socket.write(widget.name +
-          ":" +
-          value.round().toString() +
-          ":" +
-          "set");
+      widget._socket
+          .write(widget.name + ":" + value.round().toString() + ":" + "set");
   }
 }

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:lamp_control/DatabaseService/databaseService.dart';
-import 'package:lamp_control/SocketService/socketService.dart';
 import 'package:lamp_control/Widgets/AddLamp/addLamp.dart';
 import 'package:lamp_control/Widgets/AddLamp/addLampResult.dart';
 import 'package:lamp_control/Widgets/AddLamp/lampType.dart';
@@ -99,7 +98,11 @@ class _HomeState extends State<Home> {
     if (_connectionState)
       return Icon(Icons.check);
     else
-      return Icon(Icons.block);
+      return FlatButton.icon(
+        label: Text("No Connection"),
+        icon: Icon(Icons.block),
+        onPressed: reconnect,
+      );
   }
 
   Widget createStreamBuilder() {
@@ -119,10 +122,28 @@ class _HomeState extends State<Home> {
   }
 
   Widget handleStream(context, snap) {
+    // print("dataHandler Called");
+    // if (snap.hasError) {
+    //   print("test::::::" + snap.toString());
+    // } else if (snap.hasData) {
+    //   print(String.fromCharCodes(snap.data));
+    // }
     if (snap.hasError) {
-      print(snap.error.toString());
-    } else if (snap.hasData) {
-      print(String.fromCharCodes(snap.data));
+      print("my error" + snap.error);
+    }
+    switch (snap.connectionState) {
+      case ConnectionState.active:
+        print(String.fromCharCodes(snap.data));
+        break;
+      case ConnectionState.done:
+        reconnect();
+        break;
+      case ConnectionState.none:
+        reconnect();
+        break;
+      case ConnectionState.waiting:
+        print("waiting");
+        break;
     }
 
     //Empty basically not visible container used
@@ -133,49 +154,48 @@ class _HomeState extends State<Home> {
     );
   }
 
+  void reconnect() {
+    Socket.connect(widget.config.get("ip"), widget.config.get("port"))
+        .then((sock) {
+      if (widget._socket != null) widget._socket.destroy();
+      widget._socket = sock;
+      setState(() {
+        _connectionState = true;
+        updateLamps(sock);
+      });
+    }).catchError((err) {
+      print(err.toString());
+      setState(() {
+        if (widget._socket != null) widget._socket.destroy();
+        widget._socket = null;
+        _connectionState = false;
+        updateLamps(null);
+      });
+    });
+  }
+
+  void updateLamps(Socket socket) {
+    _lamps.forEach((lamp) {
+      if (lamp.runtimeType == SetableLamp) {
+        SetableLamp tmp = lamp as SetableLamp;
+        tmp.setSocket(socket);
+      } else if (lamp.runtimeType == SwitchableLamp) {
+        SwitchableLamp tmp = lamp as SwitchableLamp;
+        tmp.setSocket(socket);
+      }
+    });
+  }
+
   void openedSettings() async {
-    final result = await Navigator.push<SettingsResult>(context,
-        MaterialPageRoute<SettingsResult>(builder: (context) => Settings()));
+    final result = await Navigator.push<SettingsResult>(
+        context,
+        MaterialPageRoute<SettingsResult>(
+            builder: (context) => Settings(widget.config.get("ip"),
+                widget.config.get("port").toString())));
     if (result != null) {
       widget.config.setString("ip", result.raspiIp);
       widget.config.setInt("port", result.port);
-      Socket.connect(result.raspiIp, result.port).then((sock) {
-        List<Widget> tmpLamps = List<Widget>.generate(0, null);
-        widget.databaseService.getLamps().then((lamps) {
-          lamps.forEach((lamp) {
-            if (lamp.type == "LampType.SWITCHABLE")
-              tmpLamps
-                  .add(new SwitchableLamp(lamp.name, sock, lamp.pin));
-            else if (lamp.type == "LampType.SETABLE")
-              tmpLamps
-                  .add(new SetableLamp(lamp.name, sock, lamp.pin));
-          });
-          setState(() {
-            _lamps = tmpLamps;
-            widget._socket = sock;
-            _connectionState = true;
-          });
-        });
-      }).catchError((err) {
-                List<Widget> tmpLamps = List<Widget>.generate(0, null);
-        widget.databaseService.getLamps().then((lamps) {
-          lamps.forEach((lamp) {
-            if (lamp.type == "LampType.SWITCHABLE")
-              tmpLamps
-                  .add(new SwitchableLamp(lamp.name, null, lamp.pin));
-            else if (lamp.type == "LampType.SETABLE")
-              tmpLamps
-                  .add(new SetableLamp(lamp.name, null, lamp.pin));
-          });
-          setState(() {
-            _lamps = tmpLamps;
-            widget._socket.destroy();
-            widget._socket = null;
-            _connectionState = false;
-          });
-        });
-        print(err.toString());
-      });
+      reconnect();
     }
   }
 
