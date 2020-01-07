@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:lamp_control/SocketService/socketService.dart';
 
 class SetableLamp extends StatefulWidget {
   String name;

@@ -94,6 +94,11 @@ class _HomeState extends State<Home> {
     );
   }
 
+  /**
+   * Create check icon if socket connection is available
+   * Create flaticonbutton if socket connection is not available
+   * OnPressed: use reconnect function
+   */
   Widget createConnectionIcon() {
     if (_connectionState)
       return Icon(Icons.check);
@@ -105,6 +110,10 @@ class _HomeState extends State<Home> {
       );
   }
 
+  /**
+   * Creates streambuilder to react to
+   * incoming messages
+   */
   Widget createStreamBuilder() {
     if (widget._socket != null) {
       _connectionState = true;
@@ -121,13 +130,10 @@ class _HomeState extends State<Home> {
     );
   }
 
+  /**
+   * Handle socket stream
+   */
   Widget handleStream(context, snap) {
-    // print("dataHandler Called");
-    // if (snap.hasError) {
-    //   print("test::::::" + snap.toString());
-    // } else if (snap.hasData) {
-    //   print(String.fromCharCodes(snap.data));
-    // }
     if (snap.hasError) {
       print("my error" + snap.error);
     }
@@ -154,6 +160,10 @@ class _HomeState extends State<Home> {
     );
   }
 
+  /**
+   * Destory current socket connection and connect to new ip/port
+   * Then use UpdateLamp()
+   */
   void reconnect() {
     Socket.connect(widget.config.get("ip"), widget.config.get("port"))
         .then((sock) {
@@ -174,6 +184,9 @@ class _HomeState extends State<Home> {
     });
   }
 
+  /**
+   * Go through every lamp and set the new socket connection
+   */
   void updateLamps(Socket socket) {
     _lamps.forEach((lamp) {
       if (lamp.runtimeType == SetableLamp) {
@@ -186,6 +199,9 @@ class _HomeState extends State<Home> {
     });
   }
 
+  /**
+   * Open Settings Dialog
+   */
   void openedSettings() async {
     final result = await Navigator.push<SettingsResult>(
         context,
@@ -199,6 +215,9 @@ class _HomeState extends State<Home> {
     }
   }
 
+/**
+ * Build new dismissable item that stores every lamp
+ */
   Widget dismissableItemBuilder(BuildContext context, int index) {
     var lamp = _lamps[index];
     return Dismissible(
@@ -241,6 +260,9 @@ class _HomeState extends State<Home> {
         });
   }
 
+  /**
+   * Open add new lamp dialog
+   */
   void addButtonPressed() async {
     final result = await Navigator.push(
       context,

@@ -26,47 +26,50 @@ class _AddLampState extends State<AddLamp> {
       body: Center(
         child: Form(
           key: _globalKey,
-          child: Column(
-            children: <Widget>[
-              TextFormField(
-                controller: lampNameController,
-                validator: (value) {
-                  if (value.isEmpty) return "Please enter a name";
-                  return null;
-                },
-                decoration: const InputDecoration(
-                  icon: Icon(Icons.lightbulb_outline),
-                  labelText: 'Lamp identifier',
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: Column(
+              children: <Widget>[
+                TextFormField(
+                  controller: lampNameController,
+                  validator: (value) {
+                    if (value.isEmpty) return "Please enter a name";
+                    return null;
+                  },
+                  decoration: const InputDecoration(
+                    icon: Icon(Icons.lightbulb_outline),
+                    labelText: 'Lamp identifier',
+                  ),
                 ),
-              ),
-              TextFormField(
-                controller: pinController,
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value.isEmpty) return "Please enter a pin";
-                  return null;
-                },
-                decoration: const InputDecoration(
-                  icon: Icon(Icons.pin_drop),
-                  labelText: 'Pin',
+                TextFormField(
+                  controller: pinController,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value.isEmpty) return "Please enter a pin";
+                    return null;
+                  },
+                  decoration: const InputDecoration(
+                    icon: Icon(Icons.pin_drop),
+                    labelText: 'Pin',
+                  ),
                 ),
-              ),
-              DropdownButtonFormField(
-                value: dropdownValue,
-                onChanged: (String newValue) {
-                  setState(() {
-                    dropdownValue = newValue;
-                  });
-                },
-                items: <String>['Switchable', 'Setable']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              )
-            ],
+                DropdownButtonFormField(
+                  value: dropdownValue,
+                  onChanged: (String newValue) {
+                    setState(() {
+                      dropdownValue = newValue;
+                    });
+                  },
+                  items: <String>['Switchable', 'Setable']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                )
+              ],
+            ),
           ),
         ),
       ),
