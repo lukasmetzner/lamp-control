@@ -4,7 +4,7 @@ import 'package:lamp_control/Widgets/Settings/settingsResult.dart';
 
 class Settings extends StatefulWidget {
   String _ip;
-  String _port;
+  int _port;
 
   Settings(ip, port) {
     this._ip = ip;
@@ -22,7 +22,7 @@ class _SettingsState extends State<Settings> {
 
   _SettingsState(ip, port) {
     raspiIpController.text = ip;
-    portController.text = port;
+    portController.text = port.toString();
   }
 
   @override

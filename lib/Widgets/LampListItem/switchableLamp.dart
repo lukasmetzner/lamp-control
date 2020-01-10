@@ -38,17 +38,17 @@ class _SwitchableLampState extends State<SwitchableLamp> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: Text(_name),
-        ),
+      children: <Widget>[  
         RaisedButton(
           child: Icon(Icons.lightbulb_outline),
           color: widget.toggle
               ? Color.fromARGB(100, 25, 255, 25)
               : Color.fromARGB(100, 255, 25, 25),
           onPressed: switchLamp,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: Text(_name),
         )
       ],
     );

@@ -135,16 +135,19 @@ class _HomeState extends State<Home> {
    */
   Widget handleStream(context, snap) {
     if (snap.hasError) {
-      print("my error" + snap.error);
+      print("snap has error: " + snap.error.toString());
+      reconnect();
     }
     switch (snap.connectionState) {
       case ConnectionState.active:
         print(String.fromCharCodes(snap.data));
         break;
       case ConnectionState.done:
+        print("connection done");
         reconnect();
         break;
       case ConnectionState.none:
+        print("connection none");
         reconnect();
         break;
       case ConnectionState.waiting:
@@ -162,11 +165,14 @@ class _HomeState extends State<Home> {
 
   /**
    * Destory current socket connection and connect to new ip/port
-   * Then use UpdateLamp()
+   * Then use UpdateLamp
    */
   void reconnect() {
-    Socket.connect(widget.config.get("ip"), widget.config.get("port"))
+    print("Called reconnect function");
+    print(widget.config.get("ip") + " " + widget.config.get("port").toString());
+    Socket.connect(widget.config.get("ip"), widget.config.get("port"), timeout: Duration(seconds: 5))
         .then((sock) {
+          print("got connection");
       if (widget._socket != null) widget._socket.destroy();
       widget._socket = sock;
       setState(() {
@@ -174,13 +180,16 @@ class _HomeState extends State<Home> {
         updateLamps(sock);
       });
     }).catchError((err) {
+      print("error");
       print(err.toString());
+      if (widget._socket != null) widget._socket.destroy();
+      widget._socket = null;
       setState(() {
-        if (widget._socket != null) widget._socket.destroy();
-        widget._socket = null;
         _connectionState = false;
         updateLamps(null);
       });
+    }).whenComplete(() {
+      print("reconnect function completed");
     });
   }
 
@@ -207,11 +216,14 @@ class _HomeState extends State<Home> {
         context,
         MaterialPageRoute<SettingsResult>(
             builder: (context) => Settings(widget.config.get("ip"),
-                widget.config.get("port").toString())));
+                widget.config.get("port"))));
     if (result != null) {
-      widget.config.setString("ip", result.raspiIp);
-      widget.config.setInt("port", result.port);
-      reconnect();
+      widget.config.setString("ip", result.raspiIp).then((ipRes) {
+        widget.config.setInt("port", result.port).then((portRes) {
+          print("trying reconnect after opened settings");
+          reconnect();
+        });
+      });    
     }
   }
 
@@ -223,40 +235,46 @@ class _HomeState extends State<Home> {
     return Dismissible(
         key: Key(lamp.toString()),
         child: lamp,
+        confirmDismiss: (direction) async {
+          if(direction == DismissDirection.endToStart){
+            return true;
+          } else if(direction == DismissDirection.startToEnd)
+            return false;
+        },
         onDismissed: (direction) {
-          setState(() {
-            _lamps.removeAt(index);
-            widget.databaseService.deleteLamp(lamp.toString()).then((data) {
-              Scaffold.of(context)
-                ..removeCurrentSnackBar()
-                ..showSnackBar(SnackBar(
-                  content: Text(lamp.toString() + " removed"),
-                ));
+            setState(() {
+              _lamps.removeAt(index);
+              widget.databaseService.deleteLamp(lamp.toString()).then((data) {
+                Scaffold.of(context)
+                  ..removeCurrentSnackBar()
+                  ..showSnackBar(SnackBar(
+                    content: Text(lamp.toString() + " removed"),
+                  ));
+              });
+              if (widget._socket != null)
+                switch (lamp.runtimeType) {
+                  case SwitchableLamp:
+                    var tmp = lamp as SwitchableLamp;
+                    widget._socket.write(tmp.name +
+                        ":" +
+                        tmp.pin.toString() +
+                        ":" +
+                        "true" +
+                        ":" +
+                        "remove");
+                    break;
+                  case SetableLamp:
+                    var tmp = lamp as SetableLamp;
+                    widget._socket.write(tmp.name +
+                        ":" +
+                        tmp.pin.toString() +
+                        ":" +
+                        "false" +
+                        ":" +
+                        "remove");
+                    break;
+                }
             });
-            if (widget._socket != null)
-              switch (lamp.runtimeType) {
-                case SwitchableLamp:
-                  var tmp = lamp as SwitchableLamp;
-                  widget._socket.write(tmp.name +
-                      ":" +
-                      tmp.pin.toString() +
-                      ":" +
-                      "true" +
-                      ":" +
-                      "remove");
-                  break;
-                case SetableLamp:
-                  var tmp = lamp as SetableLamp;
-                  widget._socket.write(tmp.name +
-                      ":" +
-                      tmp.pin.toString() +
-                      ":" +
-                      "false" +
-                      ":" +
-                      "remove");
-                  break;
-              }
-          });
         });
   }
 

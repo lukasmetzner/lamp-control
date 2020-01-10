@@ -47,12 +47,10 @@ class _SetableLampState extends State<SetableLamp> {
             max: 255,
             value: _sliderValue,
             onChanged: (value) {
+              sendInput(value);
               setState(() {
                 _sliderValue = value;
               });
-            },
-            onChangeEnd: (value) {
-              sendInput(value);
             },
           ),
         ),
